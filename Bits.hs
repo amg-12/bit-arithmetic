@@ -26,17 +26,20 @@ adder x y z = (xor z (xor x y),
 
 add :: Bit -> [Bit] -> [Bit] -> [Bit]
 add _ []     []     = []
+add x ys     []     = add x ys    [Zer]
+add x []     zs     = add x [Zer] zs
 add x (y:ys) (z:zs) = let r = adder x y z
                       in [fst r] ++ add (snd r) ys zs
-add _ _      _      = error "mismatched word lengths"
 
 add' :: [Bit] -> [Bit] -> [Bit]
 add' = add Zer
 
 neg :: [Bit] -> [Bit]
-neg xs = add One [not' x | x <- xs] [Zer | x <- xs]
+neg = add' [One] . inv
+  where inv :: [Bit] -> [Bit]
+        inv []     = []
+        inv (x:xs) = not' x : inv xs
 
 sub :: [Bit] -> [Bit] -> [Bit]
 sub = (. neg) . add'
 --sub x y = add' x $ neg y
-
