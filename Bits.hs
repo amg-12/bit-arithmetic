@@ -1,6 +1,7 @@
 module Bits where
 
-data Bit = Zer | One deriving Show
+data Bit  = Zer | One      deriving Show
+data Bits = E | B Bit Bits deriving Show
 
 nand :: Bit -> Bit -> Bit
 nand One One = Zer
@@ -24,22 +25,22 @@ adder :: Bit -> Bit -> Bit -> (Bit, Bit)
 adder x y z = (xor z (xor x y),
               or' (and' (xor x y) z) (and' x y))
 
-add :: Bit -> [Bit] -> [Bit] -> [Bit]
-add _ []     []     = []
-add x ys     []     = add x ys    [Zer]
-add x []     zs     = add x [Zer] zs
-add x (y:ys) (z:zs) = let r = adder x y z
-                      in [fst r] ++ add (snd r) ys zs
+add :: Bit -> Bits -> Bits -> Bits
+add _ E E               = E
+add x ys E              = add x ys        (B Zer E)
+add x E  zs             = add x (B Zer E) zs
+add x (B y ys) (B z zs) = let r = adder x y z
+                          in (B (fst r) (add (snd r) ys zs))
 
-add' :: [Bit] -> [Bit] -> [Bit]
+add' :: Bits -> Bits -> Bits
 add' = add Zer
 
-neg :: [Bit] -> [Bit]
-neg = add' [One] . inv
-  where inv :: [Bit] -> [Bit]
-        inv []     = []
-        inv (x:xs) = not' x : inv xs
+neg :: Bits -> Bits
+neg = add' (B One E) . inv
+  where inv :: Bits -> Bits
+        inv E        = E
+        inv (B x xs) = (B (not' x) (inv xs))
 
-sub :: [Bit] -> [Bit] -> [Bit]
+sub :: Bits -> Bits -> Bits
 sub = (. neg) . add'
 --sub x y = add' x $ neg y

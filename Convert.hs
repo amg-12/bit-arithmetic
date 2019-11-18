@@ -4,22 +4,20 @@ import Bits
 
 word_length = 32
 
-b :: Int -> [Bit]
+b :: Int -> Bits
 b = b' word_length
 
-b' :: Int -> Int -> [Bit]
-b' 0 _ = []
-b' l x 
-  | x >= 0    = [if mod x 2 == 0 then Zer else One] ++ b' (l-1) (div x 2)
+b' :: Int -> Int -> Bits
+b' 0 _ = E
+b' l x
+  | x >= 0    = B (if mod x 2 == 0 then Zer else One) (b' (l-1) (div x 2))
   | otherwise = neg $ b' l (-x)
 
-d :: [Bit] -> Int
+d :: Bits -> Int
 d = d' word_length
 
-d' :: Int -> [Bit] -> Int
-d' 0 _        = 0
-d' 1 [One]    = -1
-d' n (Zer:xs) = 2 * d' (n-1) xs
-d' n (One:xs) = 2 * d' (n-1) xs + 1
-d' _ _        = undefined
-
+d' :: Int -> Bits -> Int
+d' 0 _          = 0
+d' 1 (B One E)  = -1
+d' n (B Zer bs) = 2 * d' (n-1) bs
+d' n (B One bs) = 2 * d' (n-1) bs + 1
